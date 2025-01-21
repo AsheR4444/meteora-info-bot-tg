@@ -17,7 +17,8 @@ export default [
       semi: ['error', 'never'], // Отключаем точки с запятой
       indent: ['error', 2], // Устанавливаем отступы в 2 пробела
       "@typescript-eslint/no-unused-vars": "warn",
-      'object-curly-spacing': ['error', 'always'], // Пробелы внутри фигурных скобок
+      "object-curly-spacing": ["error", "always"], // Пробелы внутри фигурных скобок
+      "@typescript-eslint/ban-ts-comment": "off"
     },
     languageOptions: {
       ecmaVersion: 'latest', // Поддержка последних стандартов JS
