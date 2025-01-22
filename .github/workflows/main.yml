@@ -21,4 +21,4 @@ jobs:
           git status 
           npm install 
           npx tsc
-          node dist\index.js
+          node dist/index.js
