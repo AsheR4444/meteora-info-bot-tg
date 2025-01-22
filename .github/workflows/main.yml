@@ -21,5 +21,4 @@ jobs:
           git status 
           npm install 
           npx tsc
-          node .\dist\index.js
-          pm2 restart tg-bot
+          node dist\index.js
