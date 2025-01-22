@@ -9,18 +9,27 @@ import { Message, Update } from "telegraf/typings/core/types/typegram"
 import { MeteoraApiResponse } from "./types"
 
 const BOT_TOKEN = process.env.TOKEN!
-const METEORA_API_URL = "https://app.meteora.ag/clmm-api/pair/"
-const METEORA_URL_PATTERN = /https:\/\/app\.meteora\.ag\/dlmm\/([^/\s]+)/
+const METEORA_URL_PATTERNS = {
+  app: {
+    url: /https:\/\/app\.meteora\.ag\/dlmm\/([^/\s]+)/,
+    api: "https://app.meteora.ag/clmm-api/pair/",
+  },
+  edge: {
+    url: /https:\/\/edge\.meteora\.ag\/dlmm\/([^/\s]+)/,
+    api: "https://edge.meteora.ag/clmm-api/pair/",
+  },
+}
 
 const bot = new Telegraf(BOT_TOKEN)
 
 const formatPoolMessage = (data: MeteoraApiResponse, username: string, poolUrl: string): string => {
   const { address, liquidity, name, mint_x, bin_step, base_fee_percentage } = data
+  const domain = poolUrl.includes("edge.") ? "edge.meteora.ag" : "app.meteora.ag"
 
   return [
-    `Пул от: @${username}`,
+    `${username && `Пул от: @${username}`}`,
     ``,
-    `🔗 <a href="${poolUrl}">app.meteora.ag/...${address.slice(-8)}</a>`,
+    `🔗 <a href="${poolUrl}">${domain}/...${address.slice(-8)}</a>`,
     `💱 ${name}`,
     `📜 <code>${mint_x}</code>`,
     `💰 ${numeral(liquidity).format("$0,0.00")}    🔢 ${bin_step} bins     💵 ${base_fee_percentage}%`,
@@ -33,9 +42,9 @@ type MessageContext = Context<Update> & {
   message: Message.TextMessage
 }
 
-const processPoolUrl = async (ctx: MessageContext, poolUrl: string, poolId: string): Promise<void> => {
+const processPoolUrl = async (ctx: MessageContext, poolUrl: string, poolId: string, apiUrl: string): Promise<void> => {
   try {
-    const response = await axios.get<MeteoraApiResponse>(`${METEORA_API_URL}${poolId}`)
+    const response = await axios.get<MeteoraApiResponse>(`${apiUrl}${poolId}`)
     const message = formatPoolMessage(response.data, ctx.message.from.username ?? "", poolUrl)
 
     await ctx.reply(message, {
@@ -56,11 +65,13 @@ bot.on(message("text"), (ctx) => {
     return
   }
 
-  const match = ctx.message.text.match(METEORA_URL_PATTERN)
-  if (match) {
-    const [fullUrl, poolId] = match
-
-    processPoolUrl(ctx, fullUrl, poolId)
+  for (const { url: pattern, api } of Object.values(METEORA_URL_PATTERNS)) {
+    const match = ctx.message.text.match(pattern)
+    if (match) {
+      const [fullUrl, poolId] = match
+      processPoolUrl(ctx, fullUrl, poolId, api)
+      break
+    }
   }
 })
 
