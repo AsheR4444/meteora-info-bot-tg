@@ -1,0 +1,25 @@
+name: meteora-bot-ci-cd
+
+on:
+  push:
+    branches: [ master ] 
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Deploy using ssh 
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }} 
+        username: ${{ secrets.USERNAME }} 
+        key: ${{ secrets.PRIVATE_KEY }} 
+        port: 22 
+        script: |
+          cd ~/meteora-info-bot 
+          git pull origin master 
+          git status 
+          npm install 
+          npx tsc
+          node .\dist\index.js
+          pm2 restart tg-bot
