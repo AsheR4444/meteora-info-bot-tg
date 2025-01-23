@@ -33,8 +33,6 @@ const formatPoolMessage = (data: MeteoraApiResponse, username: string, poolUrl: 
     `💱 ${name}`,
     `📜 <code>${mint_x}</code>`,
     `💰 ${numeral(liquidity).format("$0,0.00")}    🔢 ${bin_step} bins     💵 ${base_fee_percentage}%`,
-    ``,
-    `<a href="https://dexscreener.com/solana/${mint_x}">Ⲙ DexScreener</a>    <a href="https://gmgn.ai/sol/token/${mint_x}">🦎 GMGN</a>`,
   ].join("\n")
 }
 
@@ -50,7 +48,17 @@ const processPoolUrl = async (ctx: MessageContext, poolUrl: string, poolId: stri
     await ctx.reply(message, {
       parse_mode: "HTML",
       // @ts-ignore
+      disable_web_page_preview: true,
+      // @ts-ignore
       reply_to_message_id: ctx.message.message_id,
+      reply_markup: {
+        inline_keyboard: [
+          [
+            { text: "Ⲙ DexScreener", url: `https://dexscreener.com/solana/${response.data.mint_x}` },
+            { text: "🦎 GMGN", url: `https://gmgn.ai/sol/token/${response.data.mint_x}` }
+          ]
+        ]
+      }
     })
   } catch (error) {
     console.error(`Error processing pool ${poolId}:`, error)
