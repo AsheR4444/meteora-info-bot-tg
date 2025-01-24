@@ -58,6 +58,21 @@ const processPoolUrl = async (ctx: MessageContext, poolUrl: string, poolId: stri
   }
 }
 
+bot.start((ctx) => {
+  const message = [
+    "👋 Hi! I'm a bot for getting information about Meteora pools",
+    "",
+    "Just send me a Meteora pool link and I'll show you:",
+    "• Pool liquidity",
+    "• Trading volume",
+    "• Token pair",
+    "• Pool age",
+    "• And other useful information",
+  ].join("\n")
+
+  return ctx.reply(message)
+})
+
 bot.hears("/info", (ctx) => ctx.reply("Made by @degencoding"))
 
 bot.on(message("text"), (ctx) => {
