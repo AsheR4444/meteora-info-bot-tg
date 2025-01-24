@@ -1,12 +1,12 @@
 import "dotenv/config"
 
 import axios from "axios"
-import numeral from "numeral"
 import { Telegraf, Context } from "telegraf"
 import { message } from "telegraf/filters"
 import { Message, Update } from "telegraf/typings/core/types/typegram"
 
-import { MeteoraApiResponse } from "./types"
+import { DexScreenerPoolResponse, MeteoraApiResponse } from "./types"
+import { formatPoolMessage } from "./helpers"
 
 const BOT_TOKEN = process.env.TOKEN!
 const METEORA_URL_PATTERNS = {
@@ -19,22 +19,9 @@ const METEORA_URL_PATTERNS = {
     api: "https://edge.meteora.ag/clmm-api/pair/",
   },
 }
+const DEXSCREENER_PAIRS_URL = "https://api.dexscreener.com/latest/dex/pairs/solana/"
 
 const bot = new Telegraf(BOT_TOKEN)
-
-const formatPoolMessage = (data: MeteoraApiResponse, username: string, poolUrl: string): string => {
-  const { address, liquidity, name, mint_x, bin_step, base_fee_percentage } = data
-  const domain = poolUrl.includes("edge.") ? "edge.meteora.ag" : "app.meteora.ag"
-
-  return [
-    `${username && `Пул от: @${username}`}`,
-    ``,
-    `🔗 <a href="${poolUrl}">${domain}/...${address.slice(-8)}</a>`,
-    `💱 ${name}`,
-    `📜 <code>${mint_x}</code>`,
-    `💰 ${numeral(liquidity).format("$0,0.00")}    🔢 ${bin_step} bins     💵 ${base_fee_percentage}%`,
-  ].join("\n")
-}
 
 type MessageContext = Context<Update> & {
   message: Message.TextMessage
@@ -42,8 +29,14 @@ type MessageContext = Context<Update> & {
 
 const processPoolUrl = async (ctx: MessageContext, poolUrl: string, poolId: string, apiUrl: string): Promise<void> => {
   try {
-    const response = await axios.get<MeteoraApiResponse>(`${apiUrl}${poolId}`)
-    const message = formatPoolMessage(response.data, ctx.message.from.username ?? "", poolUrl)
+    const meteoraResponse = await axios.get<MeteoraApiResponse>(`${apiUrl}${poolId}`)
+    const dexScreenerResponse = await axios.get<DexScreenerPoolResponse>(`${DEXSCREENER_PAIRS_URL}${poolId}`)
+    const message = formatPoolMessage(
+      meteoraResponse.data,
+      dexScreenerResponse.data,
+      ctx.message.from.username ?? "",
+      poolUrl,
+    )
 
     await ctx.reply(message, {
       parse_mode: "HTML",
@@ -54,11 +47,11 @@ const processPoolUrl = async (ctx: MessageContext, poolUrl: string, poolId: stri
       reply_markup: {
         inline_keyboard: [
           [
-            { text: "Ⲙ DexScreener", url: `https://dexscreener.com/solana/${response.data.mint_x}` },
-            { text: "🦎 GMGN", url: `https://gmgn.ai/sol/token/${response.data.mint_x}` }
-          ]
-        ]
-      }
+            { text: "Ⲙ DexScreener", url: `https://dexscreener.com/solana/${meteoraResponse.data.mint_x}` },
+            { text: "🦎 GMGN", url: `https://gmgn.ai/sol/token/${meteoraResponse.data.mint_x}` },
+          ],
+        ],
+      },
     })
   } catch (error) {
     console.error(`Error processing pool ${poolId}:`, error)

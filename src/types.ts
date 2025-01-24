@@ -26,3 +26,10 @@ export type MeteoraApiResponse = {
   farm_apy: number
   hide: boolean
 }
+
+export type DexScreenerPoolResponse = {
+  pair: {
+    volume: { h24: number; h6: number; h1: number; m5: number }
+    pairCreatedAt: number
+  }
+}
