@@ -48,7 +48,7 @@ const processPoolUrl = async (ctx: MessageContext, poolUrl: string, poolId: stri
         inline_keyboard: [
           [
             { text: "Ⲙ DexScreener", url: `https://dexscreener.com/solana/${meteoraResponse.data.mint_x}` },
-            { text: "🦎 GMGN", url: `https://gmgn.ai/sol/token/${meteoraResponse.data.mint_x}` },
+            { text: "🦎 GMGN", url: `https://gmgn.ai/sol/token/u6f3FEF2_${meteoraResponse.data.mint_x}` },
           ],
         ],
       },
