@@ -77,9 +77,9 @@ bot.hears("/info", (ctx) => ctx.reply("Made by @degencoding"))
 
 bot.on(message("text"), (ctx) => {
   // @ts-ignore
-  if (ctx.message.chat.type === "supergroup" && ctx.message.reply_to_message?.forum_topic_created?.name) {
-    return
-  }
+  // if (ctx.message.chat.type === "supergroup" && ctx.message.reply_to_message?.forum_topic_created?.name) {
+  //   return
+  // }
 
   for (const { url: pattern, api } of Object.values(METEORA_URL_PATTERNS)) {
     const match = ctx.message.text.match(pattern)
